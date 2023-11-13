@@ -189,10 +189,11 @@ class Game:
                 if player == self.dealer:
                     bet = self.pot  # Match the player's bet
                 else:
-                    bet = (input(f"Enter your bet: > $"))
-
-                if bet == '':
-                    bet = 0
+                    bet_str = input("Enter your bet: > $")
+                    if bet_str == '':
+                        bet = 0
+                    else:
+                        bet = int(bet_str)
 
                 if 0 <= bet <= player.money:
                     player.money -= bet
@@ -422,8 +423,10 @@ class Game:
         self.dealer.total = self.calc_hand(self.dealer.hand)
 
         if self.player.total2 == 0:
+            if self.player.total > 21 and self.dealer.total > 21:
+                return "Bust-Draw"
             if self.player.total > 21:
-                return "Dealer"
+                return "Bust-Loss"
             elif self.dealer.total > 21:
                 return self.player.name
             elif self.player.total < 22 and self.dealer.total < 22:
@@ -436,7 +439,7 @@ class Game:
 
         elif self.player.total2 > 0:
             if self.player.total > 21 and self.player.total2 > 21:
-                return "Dealer"
+                return "Bust-Loss"
             elif self.dealer.total > 21:
                 return self.player.name
             elif self.player.total > 21 and self.player.total2 < 22 and self.dealer.total < 22:
@@ -824,11 +827,10 @@ class Game:
             if winner == 'Dealer':
                 self.dealer.score += 1
                 self.dealer.money += self.pot
-                self.player.money -= self.pot
                 self.player.profit -= self.pot
                 Menu.save_money(self, self.player.money)
                 print(
-                    f'Winner: {Fore.RED}{winner}{Fore.WHITE}!\nThe house always {Fore.RED}WINS{Fore.WHITE} :(\n \nUpdated wallet: -${Fore.RED}{self.pot / 2}{Fore.WHITE} total: ${Fore.GREEN}{self.player.money}{Fore.WHITE}\n')
+                    f'Winner: {Fore.RED}{winner}{Fore.WHITE}!\nThe house always wins :(\n \nUpdated wallet: -${Fore.RED}{self.pot / 2}{Fore.WHITE} total: ${Fore.GREEN}{self.player.money}{Fore.WHITE}\n')
                 self.pot = 0
             if winner == 'Draw':
                 share_pot = self.pot / 2
@@ -839,7 +841,24 @@ class Game:
                 print(
                     f'Draw! There is no winner :(\nUpdated wallet: +${Fore.GREEN}{self.pot / 2}{Fore.WHITE} total: ${Fore.GREEN}{self.player.money}{Fore.WHITE}\n')
                 self.pot = 0
-            if winner == None:
+            if winner == 'Bust-Loss':
+                self.dealer.score += 1
+                self.dealer.money += self.pot
+                self.player.profit -= self.pot
+                Menu.save_money(self, self.player.money)
+                print(
+                    f'Bust! The house always wins :(\nUpdated wallet: -${Fore.RED}{self.pot / 2}{Fore.WHITE} total: ${Fore.GREEN}{self.player.money}{Fore.WHITE}\n')
+                self.pot = 0
+            if winner == 'Bust-Draw':
+                share_pot = self.pot / 2
+                self.player.money += share_pot
+                self.player.profit += share_pot
+                self.dealer.money += share_pot
+                Menu.save_money(self, self.player.money)
+                print(
+                    f'Bust! There is no winner :(\nUpdated wallet: +${Fore.GREEN}{self.pot / 2}{Fore.WHITE} total: ${Fore.GREEN}{self.player.money}{Fore.WHITE}\n')
+                self.pot = 0
+            if winner is None:
                 share_pot = self.pot / 2
                 self.player.money += share_pot
                 self.player.profit += share_pot
